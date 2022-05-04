@@ -2,7 +2,7 @@ import { MikroORM } from "@mikro-orm/core";
 
 import { __prod__ } from "./constants";
 import { Post } from "./entities/PostEntity";
-import { User } from "./entities/User";
+import { User } from "./entities/UserEntity";
 
 export default {
   entities: [Post, User],
