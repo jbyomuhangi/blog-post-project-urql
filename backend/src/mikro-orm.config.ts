@@ -2,9 +2,10 @@ import { MikroORM } from "@mikro-orm/core";
 
 import { __prod__ } from "./constants";
 import { Post } from "./entities/PostEntity";
+import { User } from "./entities/User";
 
 export default {
-  entities: [Post],
+  entities: [Post, User],
   dbName: "full_stack_db",
   user: "joel",
   password: "admin",
