@@ -4,8 +4,7 @@ import { __prod__ } from "./constants";
 import mikroConfig from "./mikro-orm.config";
 
 const main = async () => {
-  const orm = await MikroORM.init(mikroConfig);
-  await orm.getMigrator().up();
+  await MikroORM.init(mikroConfig);
 };
 
 main().catch((error) => console.error(error));
