@@ -6,7 +6,9 @@
   "scripts": {
     "start": "",
     "watch": "tsc -w",
-    "dev": "nodemon dist/index.js"
+    "dev": "nodemon dist/index.js",
+    "makeMigrations": "npx mikro-orm migration:create",
+    "migrate": "npx mikro-orm migration:up"
   },
   "keywords": [],
   "author": "",

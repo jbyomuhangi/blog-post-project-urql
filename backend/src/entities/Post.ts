@@ -1,16 +1,16 @@
-import { Entity, Property } from "@mikro-orm/core";
+import { Entity, Property, PrimaryKey } from "@mikro-orm/core";
 
 @Entity()
 export class Post {
-  @Property()
-  id!: string;
+  @PrimaryKey()
+  id!: number;
 
-  @Property()
+  @Property({ type: "date" })
   createdAt = new Date();
 
-  @Property({ onUpdate: () => new Date() })
+  @Property({ type: "date", onUpdate: () => new Date() })
   updatedAt = new Date();
 
-  @Property()
+  @Property({ type: "text" })
   title!: string;
 }
