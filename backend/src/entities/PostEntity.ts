@@ -6,17 +6,17 @@ import { Field, Int, ObjectType } from "type-graphql";
 export class Post {
   @Field(() => Int)
   @PrimaryKey()
-  id!: number;
+  id: number;
 
   @Field(() => String)
   @Property({ type: "date" })
-  createdAt = new Date();
+  createdAt? = new Date();
 
   @Field(() => String)
   @Property({ type: "date", onUpdate: () => new Date() })
-  updatedAt = new Date();
+  updatedAt? = new Date();
 
   @Field(() => String)
   @Property({ type: "text" })
-  title!: string;
+  title: string;
 }
