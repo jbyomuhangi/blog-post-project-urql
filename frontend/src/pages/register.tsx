@@ -1,6 +1,7 @@
 import React from "react";
 import { Formik, Form } from "formik";
 import { Box, Button } from "@chakra-ui/react";
+import { useMutation } from "urql";
 
 import Wrapper from "../components/Wrapper";
 import InputField from "../components/InputField";
@@ -8,6 +9,8 @@ import InputField from "../components/InputField";
 interface registerProps {}
 
 const register: React.FC<registerProps> = ({}) => {
+  const [] = useMutation(``);
+
   return (
     <Wrapper variant="regular">
       <Formik
