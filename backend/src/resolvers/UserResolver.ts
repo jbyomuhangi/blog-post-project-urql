@@ -6,6 +6,7 @@ import {
   Resolver,
   Arg,
   ObjectType,
+  Query,
 } from "type-graphql";
 import argon2 from "argon2";
 
@@ -41,10 +42,18 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async me(@Ctx() { em, req }: MyContext): Promise<User | null> {
+    if (!req.session.userId) return null;
+
+    const user = await em.findOne(User, { id: req.session.userId });
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
     @Arg("options", () => UsernamePasswordInput) options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     const { username, password } = options;
 
@@ -67,6 +76,7 @@ export class UserResolver {
     const hashedPassword = await argon2.hash(password);
     const user = em.create(User, { username, password: hashedPassword });
     await em.persistAndFlush(user);
+    req.session.userId = user.id;
 
     return { user };
   }
@@ -74,7 +84,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg("options", () => UsernamePasswordInput) options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
     const { username, password } = options;
     const user = await em.findOne(User, { username });
@@ -90,6 +100,8 @@ export class UserResolver {
     if (!isValidPassword) {
       return { errors: [{ field: "password", message: "invalid password" }] };
     }
+
+    req.session.userId = user.id;
 
     return { user };
   }
