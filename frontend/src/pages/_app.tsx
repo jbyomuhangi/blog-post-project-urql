@@ -6,6 +6,7 @@ import { AppProps } from "next/app";
 
 const client = createClient({
   url: "http://localhost:4000/graphql",
+  fetchOptions: { credentials: "include" },
 });
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
