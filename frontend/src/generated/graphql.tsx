@@ -86,6 +86,7 @@ export type User = {
 
 export type UserResponse = {
   __typename?: 'UserResponse';
+  error?: Maybe<Scalars['String']>;
   errors?: Maybe<Array<FieldError>>;
   user?: Maybe<User>;
 };

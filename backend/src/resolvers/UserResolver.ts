@@ -36,6 +36,9 @@ class UserResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[];
 
+  @Field(() => String, { nullable: true })
+  error?: string;
+
   @Field(() => User, { nullable: true })
   user?: User;
 }
@@ -73,12 +76,22 @@ export class UserResolver {
       };
     }
 
-    const hashedPassword = await argon2.hash(password);
-    const user = em.create(User, { username, password: hashedPassword });
-    await em.persistAndFlush(user);
-    req.session.userId = user.id;
+    try {
+      const hashedPassword = await argon2.hash(password);
+      const user = em.create(User, { username, password: hashedPassword });
+      await em.persistAndFlush(user);
+      req.session.userId = user.id;
 
-    return { user };
+      return { user };
+    } catch (error) {
+      if (error.code === "23505") {
+        return {
+          errors: [{ field: "username", message: "Username already exists" }],
+        };
+      }
+
+      return { error: "undefined error" };
+    }
   }
 
   @Mutation(() => UserResponse)

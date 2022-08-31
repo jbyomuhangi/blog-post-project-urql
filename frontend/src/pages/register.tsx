@@ -25,6 +25,8 @@ const register: React.FC<registerProps> = ({}) => {
             setErrors(toErrorMap(response.data.register.errors));
           } else if (response.data?.register.user) {
             router.push("/");
+          } else {
+            console.log(response);
           }
         }}
       >
