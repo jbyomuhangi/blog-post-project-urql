@@ -8,7 +8,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
 
-import { __prod__, __port__ } from "./constants";
+import { __prod__, __port__, COOKIE_NAME } from "./constants";
 import mikroConfig from "./mikro-orm.config";
 import { PostResolver } from "./resolvers/PostResolver";
 import { UserResolver } from "./resolvers/UserResolver";
@@ -27,7 +27,7 @@ const main = async () => {
 
   app.use(
     session({
-      name: "qid",
+      name: COOKIE_NAME,
       secret: "ethertniHuiHUIHiuhiubuibbBuygt7f789789GIUB",
       resave: false,
       saveUninitialized: false,
