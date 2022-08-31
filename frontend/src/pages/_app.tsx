@@ -6,6 +6,7 @@ import theme from "../theme";
 import { AppProps } from "next/app";
 import {
   LoginMutation,
+  LogoutMutation,
   MeDocument,
   MeQuery,
   RegisterMutation,
@@ -45,6 +46,17 @@ const client = createClient({
                     me: queryResult.login.user,
                   };
                 }
+              }
+            );
+          },
+
+          logout: (result, args, cache, info) => {
+            customUpdateQuery<LogoutMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              result,
+              (queryResult, query) => {
+                return { me: null };
               }
             );
           },
