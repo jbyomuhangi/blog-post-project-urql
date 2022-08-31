@@ -96,6 +96,10 @@ export type UsernamePasswordInput = {
   username: Scalars['String'];
 };
 
+export type FieldErrorFragment = { __typename?: 'FieldError', field: string, message: string };
+
+export type UserFragment = { __typename?: 'User', id: number, username: string };
+
 export type LoginMutationVariables = Exact<{
   options: UsernamePasswordInput;
 }>;
@@ -115,21 +119,31 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: number, username: string } | null };
 
-
+export const FieldErrorFragmentDoc = gql`
+    fragment FieldError on FieldError {
+  field
+  message
+}
+    `;
+export const UserFragmentDoc = gql`
+    fragment User on User {
+  id
+  username
+}
+    `;
 export const LoginDocument = gql`
     mutation Login($options: UsernamePasswordInput!) {
   login(options: $options) {
     errors {
-      field
-      message
+      ...FieldError
     }
     user {
-      id
-      username
+      ...User
     }
   }
 }
-    `;
+    ${FieldErrorFragmentDoc}
+${UserFragmentDoc}`;
 
 export function useLoginMutation() {
   return Urql.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
@@ -138,16 +152,15 @@ export const RegisterDocument = gql`
     mutation Register($options: UsernamePasswordInput!) {
   register(options: $options) {
     errors {
-      field
-      message
+      ...FieldError
     }
     user {
-      id
-      username
+      ...User
     }
   }
 }
-    `;
+    ${FieldErrorFragmentDoc}
+${UserFragmentDoc}`;
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
@@ -155,11 +168,10 @@ export function useRegisterMutation() {
 export const MeDocument = gql`
     query Me {
   me {
-    id
-    username
+    ...User
   }
 }
-    `;
+    ${UserFragmentDoc}`;
 
 export function useMeQuery(options?: Omit<Urql.UseQueryArgs<MeQueryVariables>, 'query'>) {
   return Urql.useQuery<MeQuery, MeQueryVariables>({ query: MeDocument, ...options });

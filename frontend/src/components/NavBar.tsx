@@ -38,7 +38,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
   if (fetching) return null;
 
   return (
-    <Flex bg="tomato" p={4}>
+    <Flex bg="tan" p={4}>
       <Box ml="auto">
         {data?.me ? <LoggedIn username={data.me.username} /> : <NotLoggedIn />}
       </Box>
