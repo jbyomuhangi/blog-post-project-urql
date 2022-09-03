@@ -36,9 +36,7 @@ const LoggedIn: React.FC<LoggedInProps> = ({ username }) => {
 };
 
 const NavBar: React.FC<{}> = ({}) => {
-  const [{ data, fetching }] = useMeQuery({ pause: isServer() });
-
-  if (fetching) return null;
+  const [{ data }] = useMeQuery({ pause: isServer() });
 
   return (
     <Flex bg="tan" p={4}>
