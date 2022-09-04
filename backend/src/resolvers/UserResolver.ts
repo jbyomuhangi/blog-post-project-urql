@@ -57,12 +57,18 @@ export class FieldError {
 }
 
 @ObjectType()
+class NormalError {
+  @Field(() => String)
+  message: string;
+}
+
+@ObjectType()
 class UserResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[];
 
-  @Field(() => String, { nullable: true })
-  error?: string;
+  @Field(() => NormalError, { nullable: true })
+  error?: NormalError;
 
   @Field(() => User, { nullable: true })
   user?: User;
@@ -106,7 +112,7 @@ export class UserResolver {
         };
       }
 
-      return { error: "undefined error" };
+      return { error: { message: "undefined error" } };
     }
   }
 
@@ -204,13 +210,13 @@ export class UserResolver {
     const userId = await redis.get(`${FORGET_PASSWORD_PREFIX}${token}`);
 
     if (!userId) {
-      return { error: "token_expired" };
+      return { error: { message: "token expired" } };
     }
 
     const user = await em.findOne(User, { id: parseInt(userId) });
 
     if (!user) {
-      return { error: "User does not exist" };
+      return { error: { message: "User does not exist" } };
     }
 
     const hashedPassword = await argon2.hash(newPassword);
