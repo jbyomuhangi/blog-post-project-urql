@@ -4,7 +4,7 @@ import connectRedis from "connect-redis";
 import cors from "cors";
 import express from "express";
 import session from "express-session";
-import { createClient } from "redis";
+import Redis from "ioredis";
 import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 
@@ -19,9 +19,7 @@ const main = async () => {
   const app = express();
 
   const RedisStore = connectRedis(session);
-  const redisClient = createClient({ legacyMode: true });
-
-  await redisClient.connect();
+  const redis = new Redis();
 
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
@@ -32,7 +30,7 @@ const main = async () => {
       resave: false,
       saveUninitialized: false,
       store: new RedisStore({
-        client: redisClient,
+        client: redis,
         disableTouch: true,
       }),
       cookie: {
@@ -50,7 +48,12 @@ const main = async () => {
       validate: false,
     }),
 
-    context: ({ req, res }): MyContext => ({ em: orm.em.fork(), req, res }),
+    context: ({ req, res }): MyContext => ({
+      em: orm.em.fork(),
+      req,
+      res,
+      redis,
+    }),
   });
 
   await apolloServer.start();

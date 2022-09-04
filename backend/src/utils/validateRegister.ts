@@ -19,7 +19,7 @@ const validateRegister = ({
   }
 
   if (username.includes("@")) {
-    errors.push({ field: "username", message: "username can not include `@`" });
+    errors.push({ field: "username", message: `username can not include "@"` });
   }
 
   if (password.length < 3) {

@@ -1,18 +1,20 @@
+import argon2 from "argon2";
 import {
+  Arg,
   Ctx,
   Field,
   InputType,
   Mutation,
-  Resolver,
-  Arg,
   ObjectType,
   Query,
+  Resolver,
 } from "type-graphql";
-import argon2 from "argon2";
+import { v4 as uuidV4 } from "uuid";
 
-import { MyContext } from "../types";
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { User } from "../entities/UserEntity";
-import { COOKIE_NAME } from "../constants";
+import { MyContext } from "../types";
+import sendEmail from "../utils/sendEmail";
 import validateRegister from "../utils/validateRegister";
 
 @InputType()
@@ -143,5 +145,32 @@ export class UserResolver {
         }
       });
     });
+  }
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { em, redis }: MyContext
+  ): Promise<boolean> {
+    const user = await em.findOne(User, { email });
+
+    if (!user) return true;
+
+    const token = uuidV4();
+
+    /* set token in redis valid for 24 hours */
+    redis.set(
+      `${FORGET_PASSWORD_PREFIX}${token}`,
+      user.id,
+      "EX",
+      1000 * 60 * 60 * 24
+    );
+
+    await sendEmail(
+      email,
+      `<a href="http://localhost:3000/reset-password/${token}">reset password</a>`
+    );
+
+    return true;
   }
 }
