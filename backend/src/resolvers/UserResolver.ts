@@ -13,9 +13,13 @@ import argon2 from "argon2";
 import { MyContext } from "../types";
 import { User } from "../entities/UserEntity";
 import { COOKIE_NAME } from "../constants";
+import validateRegister from "../utils/validateRegister";
 
 @InputType()
-class UsernamePasswordInput {
+export class RegisterInput {
+  @Field(() => String)
+  email: string;
+
   @Field(() => String)
   username: string;
 
@@ -23,8 +27,17 @@ class UsernamePasswordInput {
   password: string;
 }
 
+@InputType()
+class LoginInput {
+  @Field(() => String)
+  usernameOrEmail: string;
+
+  @Field(() => String)
+  password: string;
+}
+
 @ObjectType()
-class FieldError {
+export class FieldError {
   @Field(() => String)
   field: string;
 
@@ -56,30 +69,21 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async register(
-    @Arg("options", () => UsernamePasswordInput) options: UsernamePasswordInput,
+    @Arg("options", () => RegisterInput) options: RegisterInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { username, password } = options;
+    const { email, username, password } = options;
 
-    if (username.length < 3) {
-      return {
-        errors: [
-          { field: "username", message: "username must be at least 3 chars" },
-        ],
-      };
-    }
-
-    if (password.length < 3) {
-      return {
-        errors: [
-          { field: "password", message: "password must be at least 3 chars" },
-        ],
-      };
-    }
+    const errors = validateRegister(options);
+    if (errors.length > 0) return { errors };
 
     try {
       const hashedPassword = await argon2.hash(password);
-      const user = em.create(User, { username, password: hashedPassword });
+      const user = em.create(User, {
+        email,
+        username,
+        password: hashedPassword,
+      });
       await em.persistAndFlush(user);
       req.session.userId = user.id;
 
@@ -97,11 +101,16 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg("options", () => UsernamePasswordInput) options: UsernamePasswordInput,
+    @Arg("options", () => LoginInput) options: LoginInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
-    const { username, password } = options;
-    const user = await em.findOne(User, { username });
+    const { usernameOrEmail, password } = options;
+
+    const isEmail = usernameOrEmail.includes("@");
+    const user = await em.findOne(
+      User,
+      isEmail ? { email: usernameOrEmail } : { username: usernameOrEmail }
+    );
 
     if (!user) {
       return {
