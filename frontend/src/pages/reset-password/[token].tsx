@@ -1,9 +1,10 @@
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Link, Flex } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { NextPage } from "next";
 import { withUrqlClient } from "next-urql";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import NextLink from "next/link";
 
 import InputField from "../../components/InputField";
 import Wrapper from "../../components/Wrapper";
@@ -11,11 +12,23 @@ import { useResetPasswordMutation } from "../../generated/graphql";
 import createUrqlClient from "../../utils/createUrqlClient";
 import { toErrorMap } from "../../utils/toErrorMap";
 
-interface NextPageProps {
-  token: string;
-}
+const ResetAgain: React.FC<{ errorMessage: string }> = ({ errorMessage }) => {
+  return (
+    <Wrapper variant="regular">
+      <Flex justifyContent="space-between">
+        <Box mb={4} color="red">
+          {errorMessage}
+        </Box>
 
-const ResetPassword: NextPage<NextPageProps> = ({ token }) => {
+        <NextLink href="/reset-password">
+          <Link color="blue">Reset again</Link>
+        </NextLink>
+      </Flex>
+    </Wrapper>
+  );
+};
+
+const ResetPassword: NextPage<{ token: string }> = ({ token }) => {
   const router = useRouter();
   const [error, setError] = useState("");
   const [, resetPassword] = useResetPasswordMutation();
@@ -26,7 +39,8 @@ const ResetPassword: NextPage<NextPageProps> = ({ token }) => {
         initialValues={{ newPassword: "", confirmNewPassword: "" }}
         onSubmit={async (values, { setErrors }) => {
           if (values.newPassword !== values.confirmNewPassword) {
-            setErrors({ confirmNewPassword: "password does not match " });
+            setErrors({ confirmNewPassword: "password does not match" });
+            return;
           }
 
           const response = await resetPassword({
@@ -63,7 +77,7 @@ const ResetPassword: NextPage<NextPageProps> = ({ token }) => {
                 />
               </Box>
 
-              {error ? <Box>{error}</Box> : null}
+              {error && <ResetAgain errorMessage={error} />}
 
               <Button type="submit" color="teal" isLoading={isSubmitting}>
                 Reset password
