@@ -1,14 +1,14 @@
-import "reflect-metadata";
 import { MikroORM } from "@mikro-orm/core";
-import express from "express";
 import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
-import { createClient } from "redis";
-import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
+import express from "express";
+import session from "express-session";
+import { createClient } from "redis";
+import "reflect-metadata";
+import { buildSchema } from "type-graphql";
 
-import { __prod__, __port__, COOKIE_NAME } from "./constants";
+import { COOKIE_NAME, __port__, __prod__ } from "./constants";
 import mikroConfig from "./mikro-orm.config";
 import { PostResolver } from "./resolvers/PostResolver";
 import { UserResolver } from "./resolvers/UserResolver";
