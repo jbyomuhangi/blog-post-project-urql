@@ -38,6 +38,15 @@ class LoginInput {
   password: string;
 }
 
+@InputType()
+class ResetPasswordInput {
+  @Field(() => String)
+  token: string;
+
+  @Field(() => String)
+  newPassword: string;
+}
+
 @ObjectType()
 export class FieldError {
   @Field(() => String)
@@ -172,5 +181,43 @@ export class UserResolver {
     );
 
     return true;
+  }
+
+  @Mutation(() => UserResponse)
+  async resetPassword(
+    @Arg("options") options: ResetPasswordInput,
+    @Ctx() { em, redis, req }: MyContext
+  ): Promise<UserResponse> {
+    const { newPassword, token } = options;
+
+    if (newPassword.length < 3) {
+      return {
+        errors: [
+          {
+            field: "newPassword",
+            message: "password must be at least 3 chars",
+          },
+        ],
+      };
+    }
+
+    const userId = await redis.get(`${FORGET_PASSWORD_PREFIX}${token}`);
+
+    if (!userId) {
+      return { error: "token_expired" };
+    }
+
+    const user = await em.findOne(User, { id: parseInt(userId) });
+
+    if (!user) {
+      return { error: "User does not exist" };
+    }
+
+    const hashedPassword = await argon2.hash(newPassword);
+    user.password = hashedPassword;
+    await em.persistAndFlush(user);
+    req.session.userId = user.id;
+
+    return { user };
   }
 }
