@@ -1,4 +1,3 @@
-import { MikroORM } from "@mikro-orm/core";
 import { ApolloServer } from "apollo-server-express";
 import connectRedis from "connect-redis";
 import cors from "cors";
@@ -7,17 +6,28 @@ import session from "express-session";
 import Redis from "ioredis";
 import "reflect-metadata";
 import { buildSchema } from "type-graphql";
+import { DataSource } from "typeorm";
 
 import { COOKIE_NAME, __port__, __prod__ } from "./constants";
-import mikroConfig from "./mikro-orm.config";
+import { Post } from "./entities/PostEntity";
+import { User } from "./entities/UserEntity";
 import { PostResolver } from "./resolvers/PostResolver";
 import { UserResolver } from "./resolvers/UserResolver";
 import { MyContext } from "./types";
 
 const main = async () => {
-  const orm = await MikroORM.init(mikroConfig);
-  const app = express();
+  const AppDataSource = new DataSource({
+    type: "postgres",
+    database: "full_stack_db",
+    username: "joel",
+    password: "admin",
+    synchronize: true,
+    logging: true,
+    entities: [User, Post],
+  });
 
+  const dataSource = await AppDataSource.initialize();
+  const app = express();
   const RedisStore = connectRedis(session);
   const redis = new Redis();
 
@@ -47,13 +57,7 @@ const main = async () => {
       resolvers: [PostResolver, UserResolver],
       validate: false,
     }),
-
-    context: ({ req, res }): MyContext => ({
-      em: orm.em.fork(),
-      req,
-      res,
-      redis,
-    }),
+    context: ({ req, res }): MyContext => ({ req, res, redis, dataSource }),
   });
 
   await apolloServer.start();
