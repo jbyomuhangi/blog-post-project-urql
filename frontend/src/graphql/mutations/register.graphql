@@ -3,7 +3,6 @@ mutation Register($options: RegisterInput!) {
     errors {
       ...FieldError
     }
-
     user {
       ...User
     }

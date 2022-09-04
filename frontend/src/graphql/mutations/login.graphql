@@ -3,7 +3,6 @@ mutation Login($options: LoginInput!) {
     errors {
       ...FieldError
     }
-
     user {
       ...User
     }
