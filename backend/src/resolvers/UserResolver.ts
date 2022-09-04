@@ -114,7 +114,7 @@ export class UserResolver {
 
     if (!user) {
       return {
-        errors: [{ field: "username", message: "user does not exist" }],
+        errors: [{ field: "usernameOrEmail", message: "user does not exist" }],
       };
     }
 
