@@ -38,7 +38,7 @@ const ResetPassword: NextPage<NextPageProps> = ({ token }) => {
           } else if (response.data?.resetPassword.user) {
             router.push("/");
           } else if (response.data?.resetPassword.error) {
-            setError(response.data.resetPassword.error);
+            setError(response.data.resetPassword.error.message);
           } else {
             console.log(response);
           }

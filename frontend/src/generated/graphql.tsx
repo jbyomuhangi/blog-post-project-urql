@@ -74,6 +74,11 @@ export type MutationUpdatePostArgs = {
   title: Scalars['String'];
 };
 
+export type NormalError = {
+  __typename?: 'NormalError';
+  message: Scalars['String'];
+};
+
 export type Post = {
   __typename?: 'Post';
   createdAt: Scalars['String'];
@@ -116,7 +121,7 @@ export type User = {
 
 export type UserResponse = {
   __typename?: 'UserResponse';
-  error?: Maybe<Scalars['String']>;
+  error?: Maybe<NormalError>;
   errors?: Maybe<Array<FieldError>>;
   user?: Maybe<User>;
 };
@@ -149,7 +154,7 @@ export type ResetPasswordMutationVariables = Exact<{
 }>;
 
 
-export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'UserResponse', error?: string | null, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, user?: { __typename?: 'User', id: number, username: string } | null } };
+export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'UserResponse', error?: { __typename?: 'NormalError', message: string } | null, errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, user?: { __typename?: 'User', id: number, username: string } | null } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -219,7 +224,9 @@ export function useRegisterMutation() {
 export const ResetPasswordDocument = gql`
     mutation ResetPassword($options: ResetPasswordInput!) {
   resetPassword(options: $options) {
-    error
+    error {
+      message
+    }
     errors {
       ...FieldError
     }
