@@ -2,6 +2,6 @@ query Posts($cursor: String, $limit: Int) {
   posts(cursor: $cursor, limit: $limit) {
     id
     title
-    text
+    textSnippet
   }
 }
