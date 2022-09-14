@@ -3,5 +3,6 @@ query Posts($cursor: String, $limit: Int) {
     id
     title
     textSnippet
+    createdAt
   }
 }

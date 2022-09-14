@@ -1,13 +1,15 @@
 import { Button, Stack, Box, Heading, Text, Flex } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
+import { useState } from "react";
 
 import Layout from "../components/Layout";
 import { usePostsQuery } from "../generated/graphql";
 import createUrqlClient from "../utils/createUrqlClient";
 
 const Index = () => {
-  const [{ data }] = usePostsQuery();
+  const [variables, setVariables] = useState({});
+  const [{ data }] = usePostsQuery({ variables });
 
   return (
     <Layout>
@@ -32,7 +34,16 @@ const Index = () => {
           </Stack>
 
           <Flex>
-            <Button m="auto" my="30px">
+            <Button
+              m="auto"
+              my="30px"
+              onClick={() => {
+                setVariables((currentVariables) => ({
+                  ...currentVariables,
+                  cursor: data.posts[data.posts.length - 1].createdAt,
+                }));
+              }}
+            >
               Load more
             </Button>
           </Flex>

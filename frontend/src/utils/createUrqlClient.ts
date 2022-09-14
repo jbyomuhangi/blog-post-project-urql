@@ -1,8 +1,13 @@
-import { cacheExchange } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import { SSRExchange } from "next-urql";
-import { dedupExchange, fetchExchange, Exchange } from "urql";
-import { pipe, tap } from "wonka";
 import Router from "next/router";
+import {
+  dedupExchange,
+  Exchange,
+  fetchExchange,
+  stringifyVariables,
+} from "urql";
+import { pipe, tap } from "wonka";
 
 import {
   LoginMutation,
@@ -12,6 +17,28 @@ import {
   RegisterMutation,
 } from "../generated/graphql";
 import customUpdateQuery from "./customUpdateQuery";
+
+const cursorPagination = (): Resolver => {
+  return (parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+
+    if (fieldInfos.length === 0) return undefined;
+
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    const isItInTheCache = !cache.resolve(entityKey, fieldKey);
+    info.partial = isItInTheCache;
+
+    const results: string[] = [];
+    fieldInfos.forEach((fieldInfo) => {
+      const data = cache.resolve(entityKey, fieldInfo.fieldKey) as string[];
+      results.push(...data);
+    });
+
+    return results;
+  };
+};
 
 const errorExchange: Exchange =
   ({ forward }) =>
@@ -32,6 +59,7 @@ const createUrqlClient = (ssrExchange: SSRExchange) => {
     exchanges: [
       dedupExchange,
       cacheExchange({
+        resolvers: { Query: { posts: cursorPagination() } },
         updates: {
           Mutation: {
             login: (result, args, cache, info) => {
