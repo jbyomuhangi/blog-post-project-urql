@@ -7,6 +7,7 @@ import Redis from "ioredis";
 import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 import { DataSource } from "typeorm";
+import path from "path";
 
 import { COOKIE_NAME, __port__, __prod__ } from "./constants";
 import { Post } from "./entities/PostEntity";
@@ -24,6 +25,7 @@ const main = async () => {
     synchronize: true,
     logging: true,
     entities: [User, Post],
+    migrations: [path.join(__dirname, "./migrations/*")],
   });
 
   const dataSource = await AppDataSource.initialize();
