@@ -28,7 +28,7 @@ const ResetAgain: React.FC<{ errorMessage: string }> = ({ errorMessage }) => {
   );
 };
 
-const ResetPassword: NextPage<{ token: string }> = ({ token }) => {
+const ResetPassword: NextPage<{}> = ({}) => {
   const router = useRouter();
   const [error, setError] = useState("");
   const [, resetPassword] = useResetPasswordMutation();
@@ -44,7 +44,13 @@ const ResetPassword: NextPage<{ token: string }> = ({ token }) => {
           }
 
           const response = await resetPassword({
-            options: { newPassword: values.newPassword, token },
+            options: {
+              newPassword: values.newPassword,
+              token:
+                typeof router.query.token === "string"
+                  ? router.query.token
+                  : "",
+            },
           });
 
           if (response.data?.resetPassword.errors) {
@@ -88,10 +94,6 @@ const ResetPassword: NextPage<{ token: string }> = ({ token }) => {
       </Formik>
     </Wrapper>
   );
-};
-
-ResetPassword.getInitialProps = ({ query }) => {
-  return { token: query.token as string };
 };
 
 export default withUrqlClient(createUrqlClient)(ResetPassword);
