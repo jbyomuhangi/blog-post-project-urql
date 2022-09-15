@@ -3,11 +3,13 @@ import {
   Arg,
   Ctx,
   Field,
+  FieldResolver,
   InputType,
   Mutation,
   ObjectType,
   Query,
   Resolver,
+  Root,
 } from "type-graphql";
 import { v4 as uuidV4 } from "uuid";
 
@@ -74,8 +76,15 @@ class UserResponse {
   user?: User;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: MyContext): string {
+    /* Make sure email is returned only is user owns it */
+    if (req.session.userId === user.id) return user.email;
+    return "";
+  }
+
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req }: MyContext): Promise<User | null> {
     if (!req.session.userId) return null;
