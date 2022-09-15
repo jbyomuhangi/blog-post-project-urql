@@ -15,6 +15,7 @@ import { User } from "./entities/UserEntity";
 import { PostResolver } from "./resolvers/PostResolver";
 import { UserResolver } from "./resolvers/UserResolver";
 import { MyContext } from "./types";
+import { Vote } from "./entities/VoteEntity";
 
 const main = async () => {
   const AppDataSource = new DataSource({
@@ -22,9 +23,9 @@ const main = async () => {
     database: "full_stack_db",
     username: "joel",
     password: "admin",
-    // synchronize: true,
+    synchronize: true,
     logging: true,
-    entities: [User, Post],
+    entities: [User, Post, Vote],
     migrations: [path.join(__dirname, "./migrations/*")],
   });
 

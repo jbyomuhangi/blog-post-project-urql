@@ -7,9 +7,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
 } from "typeorm";
 
 import { User } from "./UserEntity";
+import { Vote } from "./VoteEntity";
 
 @ObjectType()
 @Entity()
@@ -45,4 +47,7 @@ export class Post extends BaseEntity {
   @Field(() => Int)
   @Column({ type: "int", default: 0 })
   points: number;
+
+  @OneToMany(() => Vote, (vote) => vote.post)
+  votes: Vote[];
 }

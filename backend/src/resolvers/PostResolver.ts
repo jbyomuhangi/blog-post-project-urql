@@ -42,6 +42,34 @@ export class PostResolver {
     return root.text.slice(0, 50);
   }
 
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async vote(
+    @Arg("postId", () => Int) postId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req, dataSource }: MyContext
+  ): Promise<boolean> {
+    const isUpVote = value != -1;
+    const realValue = isUpVote ? 1 : -1;
+
+    await dataSource.query(
+      `
+        START TRANSACTION;
+
+        insert into vote ("userId", "postId", value)
+        values(${req.session.userId}, ${postId}, ${realValue});
+
+        update post
+        set points = points + ${realValue}
+        where id = ${postId};
+
+        COMMIT;
+      `
+    );
+
+    return true;
+  }
+
   @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int, { defaultValue: 20, nullable: true })
