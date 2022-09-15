@@ -109,13 +109,21 @@ export class PostResolver {
     @Arg("limit", () => Int, { defaultValue: 20, nullable: true })
     limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
-    @Ctx() { dataSource }: MyContext
+    @Ctx() { dataSource, req }: MyContext
   ): Promise<PaginatedPosts> {
+    const { userId } = req.session;
     const realLimit = limit < 0 ? 0 : Math.min(50, limit);
     if (realLimit === 0) return { posts: [], hasMore: false };
 
     const replacements: any = [realLimit];
-    if (cursor) replacements.push(new Date(parseInt(cursor)));
+    let cursorIndex: number = 3;
+
+    if (userId) replacements.push(userId);
+
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)));
+      cursorIndex = replacements.length;
+    }
 
     const posts = await dataSource.query(
       `
@@ -126,10 +134,15 @@ export class PostResolver {
           'email', u.email,
           'createdAt', u."createdAt",
           'updatedAt', u."updatedAt"
-        ) creator
+        ) creator,
+        ${
+          userId
+            ? `(select value from vote where "userId" = $2 and "postId" = p.id ) "voteStatus"`
+            : `null as "voteStatus"`
+        }
         from post p
         inner join public.user u on u.id = p."creatorId"
-        ${cursor ? `where p."createdAt" < $2` : ""}
+        ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
         order by p."createdAt" DESC
         limit $1
       `,
