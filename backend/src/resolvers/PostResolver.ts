@@ -52,18 +52,27 @@ export class PostResolver {
     const realLimit = limit < 0 ? 0 : Math.min(50, limit);
     if (realLimit === 0) return { posts: [], hasMore: false };
 
-    const queryBuilder = dataSource.getRepository(Post).createQueryBuilder();
+    const replacements: any = [realLimit];
+    if (cursor) replacements.push(new Date(parseInt(cursor)));
 
-    if (cursor) {
-      queryBuilder.where(`"createdAt" < :cursor`, {
-        cursor: new Date(parseInt(cursor)),
-      });
-    }
-
-    const posts = await queryBuilder
-      .orderBy(`"createdAt"`, "DESC")
-      .take(realLimit)
-      .getMany();
+    const posts = await dataSource.query(
+      `
+        select p.*,
+        json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'email', u.email,
+          'createdAt', u."createdAt",
+          'updatedAt', u."updatedAt"
+        ) creator
+        from post p
+        inner join public.user u on u.id = p."creatorId"
+        ${cursor ? `where p."createdAt" < $2` : ""}
+        order by p."createdAt" DESC
+        limit $1
+      `,
+      replacements
+    );
 
     return { posts, hasMore: posts.length === realLimit };
   }
