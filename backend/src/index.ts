@@ -22,7 +22,7 @@ const main = async () => {
     database: "full_stack_db",
     username: "joel",
     password: "admin",
-    synchronize: true,
+    // synchronize: true,
     logging: true,
     entities: [User, Post],
     migrations: [path.join(__dirname, "./migrations/*")],

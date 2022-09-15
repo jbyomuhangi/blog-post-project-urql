@@ -10,6 +10,7 @@ import {
   Ctx,
   FieldResolver,
   Root,
+  ObjectType,
 } from "type-graphql";
 
 import { Post } from "../entities/PostEntity";
@@ -25,6 +26,15 @@ class PostInput {
   text: string;
 }
 
+@ObjectType()
+class PaginatedPosts {
+  @Field(() => [Post])
+  posts: Post[];
+
+  @Field(() => Boolean)
+  hasMore: boolean;
+}
+
 @Resolver(Post)
 export class PostResolver {
   @FieldResolver(() => String)
@@ -32,15 +42,15 @@ export class PostResolver {
     return root.text.slice(0, 50);
   }
 
-  @Query(() => [Post])
+  @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int, { defaultValue: 20, nullable: true })
     limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
     @Ctx() { dataSource }: MyContext
-  ): Promise<Post[]> {
+  ): Promise<PaginatedPosts> {
     const realLimit = limit < 0 ? 0 : Math.min(50, limit);
-    if (realLimit === 0) return [];
+    if (realLimit === 0) return { posts: [], hasMore: false };
 
     const queryBuilder = dataSource.getRepository(Post).createQueryBuilder();
 
@@ -50,10 +60,12 @@ export class PostResolver {
       });
     }
 
-    return queryBuilder
+    const posts = await queryBuilder
       .orderBy(`"createdAt"`, "DESC")
       .take(realLimit)
       .getMany();
+
+    return { posts, hasMore: posts.length === realLimit };
   }
 
   @Query(() => Post, { nullable: true })
