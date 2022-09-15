@@ -69,9 +69,22 @@ const createUrqlClient = (ssrExchange: SSRExchange) => {
       dedupExchange,
       cacheExchange({
         keys: { PaginatedPosts: () => null },
+
         resolvers: { Query: { posts: cursorPagination() } },
+
         updates: {
           Mutation: {
+            createPost: (result, args, cache, info) => {
+              const allFields = cache.inspectFields("Query");
+              const fieldInfos = allFields.filter(
+                (info) => info.fieldName === "posts"
+              );
+
+              fieldInfos.forEach((fieldInfo) => {
+                cache.invalidate("Query", "posts", fieldInfo.arguments);
+              });
+            },
+
             login: (result, args, cache, info) => {
               customUpdateQuery<LoginMutation, MeQuery>(
                 cache,
