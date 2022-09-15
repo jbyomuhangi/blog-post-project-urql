@@ -16,6 +16,7 @@ import {
 import { Post } from "../entities/PostEntity";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
+import { Vote } from "../entities/VoteEntity";
 
 @InputType()
 class PostInput {
@@ -49,23 +50,56 @@ export class PostResolver {
     @Arg("value", () => Int) value: number,
     @Ctx() { req, dataSource }: MyContext
   ): Promise<boolean> {
+    const { userId } = req.session;
     const isUpVote = value != -1;
     const realValue = isUpVote ? 1 : -1;
 
-    await dataSource.query(
-      `
-        START TRANSACTION;
+    const vote = await Vote.findOne({ where: { postId, userId } });
 
-        insert into vote ("userId", "postId", value)
-        values(${req.session.userId}, ${postId}, ${realValue});
+    if (vote && vote.value === realValue) {
+      /* Do nothing if we make the same vote */
+    } else if (vote && vote.value !== realValue) {
+      /* Change the vote from whatever we previously voted */
+      await dataSource.transaction(async (tm) => {
+        await tm.query(
+          `
+            update vote
+            set value = $1
+            where "userId" = $2 and "postId" = $3
+          `,
+          [realValue, userId, postId]
+        );
 
-        update post
-        set points = points + ${realValue}
-        where id = ${postId};
+        await tm.query(
+          `
+            update post
+            set points = points + $1
+            where id = $2;
+          `,
+          [2 * realValue, postId]
+        );
+      });
+    } else {
+      /* Vote for first time */
+      await dataSource.transaction(async (tm) => {
+        await tm.query(
+          `
+            insert into vote ("userId", "postId", value)
+            values($1, $2, $3);
+          `,
+          [userId, postId, realValue]
+        );
 
-        COMMIT;
-      `
-    );
+        await tm.query(
+          `
+            update post
+            set points = points + $1
+            where id = $2;
+          `,
+          [realValue, postId]
+        );
+      });
+    }
 
     return true;
   }
