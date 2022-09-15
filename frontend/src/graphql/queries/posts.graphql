@@ -7,6 +7,7 @@ query Posts($cursor: String, $limit: Int) {
       textSnippet
       createdAt
       points
+      voteStatus
       creator {
         id
         username

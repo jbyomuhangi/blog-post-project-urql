@@ -1,7 +1,7 @@
 import { Box, Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Layout from "../components/Layout";
 import VotingSection from "../components/VotingSection";
@@ -28,7 +28,11 @@ const Index = () => {
           <Stack spacing={8}>
             {data.posts.posts.map((post) => (
               <Flex key={post.id} p={5} shadow="md" borderWidth="1px">
-                <VotingSection postId={post.id} points={post.points} />
+                <VotingSection
+                  postId={post.id}
+                  points={post.points}
+                  voteStatus={post.voteStatus}
+                />
 
                 <Box>
                   <Heading fontSize="xl">{post.title}</Heading>
