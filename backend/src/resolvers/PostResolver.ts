@@ -14,6 +14,7 @@ import {
 } from "type-graphql";
 
 import { Post } from "../entities/PostEntity";
+import { User } from "../entities/UserEntity";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
 import { Vote } from "../entities/VoteEntity";
@@ -39,8 +40,16 @@ class PaginatedPosts {
 @Resolver(Post)
 export class PostResolver {
   @FieldResolver(() => String)
-  textSnippet(@Root() root: Post) {
-    return root.text.slice(0, 50);
+  textSnippet(@Root() post: Post): string {
+    return post.text.slice(0, 50);
+  }
+
+  @FieldResolver(() => User)
+  creator(
+    @Root() post: Post,
+    @Ctx() { userLoader }: MyContext
+  ): Promise<User | null> {
+    return userLoader.load(post.creatorId);
   }
 
   @Mutation(() => Boolean)
@@ -128,20 +137,12 @@ export class PostResolver {
     const posts = await dataSource.query(
       `
         select p.*,
-        json_build_object(
-          'id', u.id,
-          'username', u.username,
-          'email', u.email,
-          'createdAt', u."createdAt",
-          'updatedAt', u."updatedAt"
-        ) creator,
         ${
           userId
             ? `(select value from vote where "userId" = $2 and "postId" = p.id ) "voteStatus"`
             : `null as "voteStatus"`
         }
         from post p
-        inner join public.user u on u.id = p."creatorId"
         ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
         order by p."createdAt" DESC
         limit $1
@@ -154,7 +155,7 @@ export class PostResolver {
 
   @Query(() => Post, { nullable: true })
   post(@Arg("id", () => Int) id: number): Promise<Post | null> {
-    return Post.findOne({ where: { id }, relations: ["creator"] });
+    return Post.findOne({ where: { id } });
   }
 
   @Mutation(() => Post)

@@ -16,6 +16,7 @@ import { PostResolver } from "./resolvers/PostResolver";
 import { UserResolver } from "./resolvers/UserResolver";
 import { MyContext } from "./types";
 import { Vote } from "./entities/VoteEntity";
+import createUserLoader from "./utils/createUserLoader";
 
 const main = async () => {
   const AppDataSource = new DataSource({
@@ -60,7 +61,13 @@ const main = async () => {
       resolvers: [PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext => ({ req, res, redis, dataSource }),
+    context: ({ req, res }): MyContext => ({
+      req,
+      res,
+      redis,
+      dataSource,
+      userLoader: createUserLoader(),
+    }),
   });
 
   await apolloServer.start();
