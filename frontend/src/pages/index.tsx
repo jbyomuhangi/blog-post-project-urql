@@ -1,4 +1,4 @@
-import { DeleteIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import NextLink from "next/link";
+
 import { useState } from "react";
 
 import Layout from "../components/Layout";
@@ -63,14 +64,26 @@ const Index = () => {
                     <Text mt={4}>{post.textSnippet}</Text>
 
                     {meData?.me?.id === post.creator.id && (
-                      <IconButton
-                        ml="auto"
-                        aria-label="delete post"
-                        onClick={() => {
-                          deletePost({ id: post.id });
-                        }}
-                        icon={<DeleteIcon />}
-                      />
+                      <Box ml="auto">
+                        <NextLink
+                          href="/post/edit/[id]"
+                          as={`/post/edit/${post.id}`}
+                        >
+                          <IconButton
+                            mr={4}
+                            aria-label="edit post"
+                            icon={<EditIcon />}
+                          />
+                        </NextLink>
+
+                        <IconButton
+                          aria-label="delete post"
+                          onClick={() => {
+                            deletePost({ id: post.id });
+                          }}
+                          icon={<DeleteIcon />}
+                        />
+                      </Box>
                     )}
                   </Flex>
                 </Box>
