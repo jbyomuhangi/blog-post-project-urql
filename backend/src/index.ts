@@ -17,6 +17,7 @@ import { UserResolver } from "./resolvers/UserResolver";
 import { MyContext } from "./types";
 import { Vote } from "./entities/VoteEntity";
 import createUserLoader from "./utils/createUserLoader";
+import createVoteLoader from "./utils/createVoteLoader";
 
 const main = async () => {
   const AppDataSource = new DataSource({
@@ -67,6 +68,7 @@ const main = async () => {
       redis,
       dataSource,
       userLoader: createUserLoader(),
+      voteLoader: createVoteLoader(),
     }),
   });
 
