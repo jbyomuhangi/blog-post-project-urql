@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Link } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Link } from "@chakra-ui/react";
 import NextLink from "next/link";
 import React from "react";
 
@@ -39,7 +39,13 @@ const NavBar: React.FC<{}> = ({}) => {
   const [{ data }] = useMeQuery({ pause: isServer() });
 
   return (
-    <Flex bg="tan" p={4}>
+    <Flex bg="tan" p={4} align="center">
+      <NextLink href="/">
+        <Link>
+          <Heading>Home</Heading>
+        </Link>
+      </NextLink>
+
       <Box ml="auto">
         {data?.me ? <LoggedIn username={data.me.username} /> : <NotLoggedIn />}
       </Box>
